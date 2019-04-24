@@ -4,79 +4,64 @@ public class TrabalhoDeArquiteturaThreads
 {
 	public static void main(String[] args)
 	{
-		System.out.println("Threads");
-		int I = 10000;
-		int J = 5000;
-		final int numeroDeThreads = 4;
-		//Instanciacao da matriz N*M
-		long [][] matriz = new long [I][J];
-    
-		//Metodo que gera numeros aleatorios
-		Random randomico = new Random();
+		// Quantas threads o programa vai possuir, DE PREFERÊNCIA NÚMEROS PARES
+		double numeroDeThreads = 4;
+		// MULTIPLICADOR evita ArrayOutOfBoundsException, garante que o for vai ser do tamanho das linhas e colunas
+		double MULTIPLICADOR = 1/numeroDeThreads;
+		
+		// nota: quanto mais threads mais demorado fica, mas é preciso levar em consideração o tempo da criação das threads
+		
+		// LINHAS E COLUNAS DA MATRIZ
+		final int I = 10000;
+		final int J = 10000;
+		
+		// Cria a matriz, é um objeto pois estava testando uma coisa, mas esqueci o que era...
+		Matriz matriz = new Matriz(I, J);
+		
+		// Metodo que mostra o tempo do sistema em nanosegundos
+		long st1 = System.nanoTime();//Inicio da contagem de tempo
+		// For para a criação dos threads
+		for (int i = 1; i <= numeroDeThreads; i++) 
+		{
+			CriaMatrizIJ cmij = new CriaMatrizIJ(I * (MULTIPLICADOR * (i - 1)), I * (MULTIPLICADOR * i), J * (MULTIPLICADOR * (i - 1)), J * (MULTIPLICADOR * i), matriz);
+			Thread t = new Thread(cmij);
+			t.start();
+		}
+		st1 = System.nanoTime() - st1; //Fim da contagem de tempo
+		
 		
 		//Metodo que mostra o tempo do sistema em nanosegundos
-		long st1 = System.nanoTime();//Inicio da contagem de tempo
-		
-		CriaMatrizIJ cmij_1 = new CriaMatrizIJ(I * (0.25 * (1 - 1)), I * (0.25 * 1), J * (0.25 * (1 - 1)), J * (0.25 * 1), matriz);
-		CriaMatrizIJ cmij_2 = new CriaMatrizIJ(I * (0.25 * (2 - 1)), I * (0.25 * 2), J * (0.25 * (2 - 1)), J * (0.25 * 2), matriz);
-		CriaMatrizIJ cmij_3 = new CriaMatrizIJ(I * (0.25 * (3 - 1)), I * (0.25 * 3), J * (0.25 * (3 - 1)), J * (0.25 * 3), matriz);
-		CriaMatrizIJ cmij_4 = new CriaMatrizIJ(I * (0.25 * (4 - 1)), I * (0.25 * 4), J * (0.25 * (4 - 1)), J * (0.25 * 4), matriz);
-
-		Thread t1 = new Thread(cmij_1);
-		Thread t2 = new Thread(cmij_2);
-		Thread t3 = new Thread(cmij_3);
-		Thread t4 = new Thread(cmij_4);
-
-		t1.start();
-		t2.start();
-		t3.start();
-		t4.start();
-		
-		st1 = System.nanoTime() - st1; //Fim da contagem de tempo
+		long st2 = System.nanoTime();//Inicio da contagem de tempo
+		// for para criar threads
+		for (int i = 1; i <= numeroDeThreads; i++) 
+		{
+			CriaMatrizJI cmji = new CriaMatrizJI(I * (MULTIPLICADOR * (i - 1)), I * (MULTIPLICADOR * i), J * (MULTIPLICADOR * (i - 1)), J * (MULTIPLICADOR * i), matriz);
+			Thread t = new Thread(cmji);
+			t.start();
+		}
+		st2 = System.nanoTime() - st2; //Fim da contagem de tempo
+		// mostra os tempos
 		System.out.println("Tempo em nanossegundos da criacao da primeira matriz = " + st1+ " nanosegundos");
-    
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		st1 = System.nanoTime();//Inicio da contagem de tempo
-		
-		CriaMatrizJI cmij_5 = new CriaMatrizJI(I * (0.25 * (1 - 1)), I * (0.25 * 1), J * (0.25 * (1 - 1)), J * (0.25 * 1), matriz);
-		CriaMatrizJI cmij_6 = new CriaMatrizJI(I * (0.25 * (2 - 1)), I * (0.25 * 2), J * (0.25 * (2 - 1)), J * (0.25 * 2), matriz);
-		CriaMatrizJI cmij_7 = new CriaMatrizJI(I * (0.25 * (3 - 1)), I * (0.25 * 3), J * (0.25 * (3 - 1)), J * (0.25 * 3), matriz);
-		CriaMatrizJI cmij_8 = new CriaMatrizJI(I * (0.25 * (4 - 1)), I * (0.25 * 4), J * (0.25 * (4 - 1)), J * (0.25 * 4), matriz);
-
-		Thread t5 = new Thread(cmij_5);
-		Thread t6 = new Thread(cmij_6);
-		Thread t7 = new Thread(cmij_7);
-		Thread t8 = new Thread(cmij_8);
-
-		t5.start();
-		t6.start();
-		t7.start();
-		t8.start();
-		
-		st1 = System.nanoTime() - st1; //Fim da contagem de tempo
-		System.out.println("Tempo em nanossegundos da criacao da segunda  matriz = " + st1+ " nanosegundos");
-
-    
+		System.out.println("Tempo em nanossegundos da criacao da segunda  matriz = " + st2+ " nanosegundos");
 	}
 }
 
-class CriaMatrizIJ implements Runnable{	
+class CriaMatrizIJ implements Runnable
+{	
 	final private double posicaoMenorI;
 	final private double posicaoMaiorI;
 	final private double posicaoMenorJ;
 	final private double posicaoMaiorJ;
-	final private long matriz[][];
+	Matriz matriz;
 	private Random randomico = new Random();
 	
 	// construtor
-	public CriaMatrizIJ(double posicaoMenorI, double posicaoMaiorI, double posicaoMenorJ, double posicaoMaiorJ, long matriz[][]) 
+	public CriaMatrizIJ(double iMenor, double iMaior, double jMenor, double jMaior, Matriz matriz) 
 	{
-		this.posicaoMenorI = posicaoMenorI;
-		this.posicaoMaiorI = posicaoMaiorI;
-		this.posicaoMenorJ = posicaoMenorJ;
-		this.posicaoMaiorJ = posicaoMaiorJ;
+		this.posicaoMenorI = iMenor;
+		this.posicaoMaiorI = iMaior;
+		this.posicaoMenorJ = jMenor;
+		this.posicaoMaiorJ = jMaior;
 		this.matriz = matriz;
 	}
 	
@@ -88,22 +73,23 @@ class CriaMatrizIJ implements Runnable{
 		{
 			for (int j = (int)posicaoMenorJ; j < (posicaoMaiorJ -1); j++) 
 			{
-				matriz[i][j] = randomico.nextInt();
+				matriz.matriz[i][j] = randomico.nextInt();
 			}
 		}
 	}	
 }
 
+// classe das threads que só faz criar uma matriz mesmo
 class CriaMatrizJI implements Runnable{	
 	final private double posicaoMenorI;
 	final private double posicaoMaiorI;
 	final private double posicaoMenorJ;
 	final private double posicaoMaiorJ;
-	final private long matriz[][];
-	private Random randomico = new Random();
+	Matriz matriz;
+	Random randomico = new Random();
 	
 	// construtor
-	public CriaMatrizJI(double posicaoMenorI, double posicaoMaiorI, double posicaoMenorJ, double posicaoMaiorJ, long matriz[][]) 
+	public CriaMatrizJI(double posicaoMenorI, double posicaoMaiorI, double posicaoMenorJ, double posicaoMaiorJ, Matriz matriz) 
 	{
 		this.posicaoMenorI = posicaoMenorI;
 		this.posicaoMaiorI = posicaoMaiorI;
@@ -120,8 +106,18 @@ class CriaMatrizJI implements Runnable{
 		{
 			for (int i = (int)posicaoMenorI; i < (posicaoMaiorI -1); i++) 
 			{
-				matriz[i][j] = randomico.nextInt();
+				matriz.matriz[i][j] = randomico.nextInt();
 			}
 		}
 	}	
+}
+
+class Matriz
+{
+	long matriz[][];
+	
+	public Matriz(int i, int j) 
+	{
+		matriz = new long[i][j];
+	}
 }
